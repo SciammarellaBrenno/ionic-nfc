@@ -1,0 +1,7 @@
+{
+  "name": "NFC",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue"
+}
