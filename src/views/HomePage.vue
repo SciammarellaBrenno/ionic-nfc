@@ -16,10 +16,10 @@
               <ion-button @click="ReadNdef()">LER TAG</ion-button>
             </ion-col>
             <ion-col size="12">
-              <ion-text>ID: {{}}</ion-text>
+              <ion-text>Valor: {{valor}}</ion-text>
             </ion-col>
             <ion-col size="12">
-              <ion-button @click="Share()" disabled>Share</ion-button>
+              <ion-button @click="Share()">Share</ion-button>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -49,6 +49,8 @@ export default defineComponent({
     const nfc = ref(NFC);
     const tags = ref<any[]>([]);
 
+    const valor = ref("");
+
     function ReadNdef(){
       nfc.value.addNdefListener (
         function () {},
@@ -60,6 +62,7 @@ export default defineComponent({
         var ndefMessage = tag.ndefMessage;
 
         alert(JSON.stringify(tag));
+        valor.value = nfc.value.bytesToString(ndefMessage[0].payload).substring(3);
         alert(nfc.value.bytesToString(ndefMessage[0].payload).substring(3));
       });
     }
@@ -78,12 +81,22 @@ export default defineComponent({
     }
 
     function Share(){
-      // var teste = Ndef.textRecord("", undefined, id.value)
-      // nfc.value.share([teste])
+      var teste = [
+        Ndef.uriRecord(valor.value.toString())
+      ]
+      nfc.value.share(teste).then(
+        res => {
+          alert(JSON.stringify(res))
+        },
+        err => {
+          alert(JSON.stringify(err))
+        }
+      )
     }
 
     return{
       tags,
+      valor,
       ReadNdef,
       ReadTag,
       Share
