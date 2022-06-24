@@ -12,13 +12,14 @@
         <ion-grid>
           <ion-row>
             <ion-col size="12">
-              <ion-button @click="Read()">LER</ion-button>
+              <ion-button @click="ReadNdef()">LER NDEF</ion-button>
+              <ion-button @click="ReadNdef()">LER TAG</ion-button>
             </ion-col>
             <ion-col size="12">
-              <ion-text>ID: {{id}}</ion-text>
+              <ion-text>ID: {{}}</ion-text>
             </ion-col>
             <ion-col size="12">
-              <ion-button @click="Share()">Share</ion-button>
+              <ion-button @click="Share()" disabled>Share</ion-button>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -29,8 +30,9 @@
 </template>
 
 <script lang="ts">
+/* eslint-disable */
 import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
-import { NFC, Ndef } from "@awesome-cordova-plugins/nfc"
+import { NFC, Ndef } from '@awesome-cordova-plugins/nfc';
 import { defineComponent, ref } from 'vue';
 
 export default defineComponent({
@@ -45,29 +47,45 @@ export default defineComponent({
   setup(){
 
     const nfc = ref(NFC);
-    const id = ref<number[]>([]);
+    const tags = ref<any[]>([]);
 
-    function Read(){
-      
-      let flags = nfc.value.FLAG_READER_NFC_A | nfc.value.FLAG_READER_NFC_V;
-      nfc.value.readerMode(flags).subscribe(
-        tag => {
-          alert("Leu");
-          id.value = tag.id!;
-        },
-        err => alert(JSON.stringify(err))
-      )
+    function ReadNdef(){
+      nfc.value.addNdefListener (
+        function () {},
+        function (error: any) { // error callback
+          alert("Error adding NDEF listener " + JSON.stringify(error));
+        }
+      ).subscribe(nfcEvent => {
+        var tag = nfcEvent.tag;
+        var ndefMessage = tag.ndefMessage;
 
+        alert(JSON.stringify(tag));
+        alert(nfc.value.bytesToString(ndefMessage[0].payload).substring(3));
+      });
+    }
+
+    function ReadTag(){
+      nfc.value.addTagDiscoveredListener (
+        function () {},
+        function (error: any) { // error callback
+          alert("Error adding NDEF listener " + JSON.stringify(error));
+        }
+      ).subscribe(nfcEvent => {
+        var tag = nfcEvent.tag;
+        
+        alert(JSON.stringify(tag));
+      });
     }
 
     function Share(){
-      var teste = Ndef.textRecord("", undefined, id.value)
-      nfc.value.share([teste])
+      // var teste = Ndef.textRecord("", undefined, id.value)
+      // nfc.value.share([teste])
     }
 
     return{
-      id,
-      Read,
+      tags,
+      ReadNdef,
+      ReadTag,
       Share
     }
   }
